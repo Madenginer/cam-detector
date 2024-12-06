@@ -1,0 +1,20 @@
+/* Gaya untuk tampilan halaman */
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #f4f4f9;
+    margin: 0;
+    padding: 0;
+  }
+  
+  h1 {
+    margin-top: 20px;
+    color: #333;
+  }
+  
+  video {
+    border: 2px solid #333;
+    border-radius: 10px;
+    margin-top: 20px;
+  }
+  

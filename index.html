@@ -1,46 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Face API Age & Gender Detection</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f0f0f0;
-        }
-        video {
-            position: absolute;
-            width: 80%;
-            height: auto;
-        }
-        canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-        }
-        #ageGender {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background-color: rgba(0, 0, 0, 0.5);
-            color: white;
-            padding: 10px;
-            border-radius: 5px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Face Detection with Age & Gender</title>
+  <!-- Tambahkan file CSS eksternal -->
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <!-- Judul halaman -->
+  <h1>Face Detection with Age & Gender</h1>
 
-<video id="videoElement" autoplay muted></video>
-<div id="overlay"></div>
-<div id="ageGender"></div>
+  <!-- Elemen video untuk streaming kamera -->
+  <div>
+    <video id="video" width="720" height="560" autoplay muted></video>
+  </div>
 
-<script src="script.js"></script>
+  <!-- Tambahkan Face API dari folder 'js' -->
+  <script src="js/face-api.min.js"></script>
+  <!-- File JavaScript utama -->
+  <script src="script.js"></script>
 </body>
 </html>

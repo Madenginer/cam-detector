@@ -1,57 +1,51 @@
-// Referensi elemen video dan overlay
-const video = document.getElementById('videoElement');
-const overlay = document.getElementById('overlay');
-const ageGenderDiv = document.getElementById('ageGender');
+// DEBUG: Log untuk memantau proses pemuatan model
+console.log("Starting to load models...");
 
-// Load Face API models from local folder
+// Muat semua model Face API dari folder 'models'
 Promise.all([
-    faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
-    faceapi.nets.ageGenderNet.loadFromUri('/models'),
-    faceapi.nets.faceLandmark68Net.loadFromUri('/models')
-]).then(startVideo).catch(err => console.error("Error loading models:", err));
+  faceapi.nets.tinyFaceDetector.loadFromUri('models'), // Model deteksi wajah
+  faceapi.nets.ageGenderNet.loadFromUri('models') // Model deteksi usia & gender
+])
+  .then(() => {
+    console.log("Models loaded successfully."); // DEBUG: Model berhasil dimuat
+    startVideo(); // Mulai akses kamera setelah model dimuat
+  })
+  .catch(err => console.error("Error loading models: ", err)); // DEBUG: Tangkap error jika model gagal dimuat
 
-// Start the video stream
+// Fungsi untuk menginisialisasi akses kamera
 function startVideo() {
-    navigator.mediaDevices.getUserMedia({ video: {} })
-        .then(stream => {
-            video.srcObject = stream;
-        })
-        .catch(err => console.error("Error accessing webcam:", err));
+  console.log("Attempting to access the camera..."); // DEBUG: Mulai akses kamera
+  const video = document.getElementById('video'); // Ambil elemen <video> dari HTML
+  navigator.mediaDevices.getUserMedia({ video: true }) // Minta izin akses kamera
+    .then(stream => {
+      console.log("Camera accessed successfully."); // DEBUG: Kamera berhasil diakses
+      video.srcObject = stream; // Sambungkan stream kamera ke elemen video
+    })
+    .catch(err => console.error("Error accessing the camera: ", err)); // DEBUG: Tangkap error jika kamera gagal diakses
 }
 
-// Event listener when the video is playing
-video.addEventListener("play", () => {
-    overlay.width = video.videoWidth;
-    overlay.height = video.videoHeight;
+// Event listener untuk menjalankan deteksi saat video mulai diputar
+const video = document.getElementById('video'); // Ambil elemen video
+video.addEventListener('play', () => {
+  console.log("Video started playing. Starting face detection..."); // DEBUG: Video mulai
+  const canvas = faceapi.createCanvasFromMedia(video); // Buat canvas dari elemen video
+  document.body.append(canvas); // Tambahkan canvas ke halaman
+  const displaySize = { width: video.width, height: video.height }; // Ukuran elemen video
+  faceapi.matchDimensions(canvas, displaySize); // Sesuaikan dimensi canvas dengan video
 
-    // Set interval to continuously detect faces
-    setInterval(async () => {
-        const detections = await faceapi
-            .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
-            .withAgeAndGender()
-            .withFaceLandmarks();
-
-        // Draw the detections and display information
-        drawDetections(detections);
-    }, 100);  // 100ms interval
-});
-
-// Draw detected faces and other information (age, gender)
-function drawDetections(detections) {
-    const canvas = faceapi.createCanvasFromMedia(video);
-    overlay.innerHTML = '';  // Clear previous canvas
-    overlay.append(canvas);
-    faceapi.matchDimensions(canvas, video);
-
-    detections.forEach(detection => {
-        const { age, gender, genderProbability } = detection;
-        const box = detection.detection.box;
-        const drawBox = new faceapi.draw.DrawBox(box, { label: `${Math.round(age)} years, ${gender} (${Math.round(genderProbability * 100)}%)` });
-
-        drawBox.draw(canvas);
-
-        // Display age and gender information
-        const infoText = `${Math.round(age)} years | ${gender} (${Math.round(genderProbability * 100)}%)`;
-        ageGenderDiv.innerHTML = `<p>Age: ${Math.round(age)} years</p><p>Gender: ${gender}</p><p>Confidence: ${Math.round(genderProbability * 100)}%</p>`;
+  setInterval(async () => {
+    // Deteksi wajah & usia setiap 100ms
+    const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions()).withAgeAndGender();
+    console.log("Detections:", detections); // DEBUG: Log hasil deteksi
+    const resizedDetections = faceapi.resizeResults(detections, displaySize); // Sesuaikan ukuran hasil deteksi
+    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height); // Bersihkan canvas
+    faceapi.draw.drawDetections(canvas, resizedDetections); // Gambar deteksi di canvas
+    resizedDetections.forEach(detection => {
+      const { age, gender, genderProbability } = detection;
+      const box = detection.detection.box;
+      const text = `${Math.round(age)} years old, ${gender} (${(genderProbability * 100).toFixed(1)}%)`;
+      const drawBox = new faceapi.draw.DrawBox(box, { label: text });
+      drawBox.draw(canvas); // Tambahkan label usia & gender
     });
-}
+  }, 100); // Deteksi diulang setiap 100ms
+});
